@@ -33,11 +33,15 @@ ego_vehicle = spawn_vehicle(x_offset=155, y_offset=-30)
 
 # Add the radar sensor
 radar_bp = world.get_blueprint_library().find('sensor.other.radar')
-radar_bp.set_attribute('horizontal_fov', '10')  # Horizontal field of view
-radar_bp.set_attribute('vertical_fov', '10')    # Vertical field of view
-radar_bp.set_attribute('range', '20')           # Maximum range
+# radar_bp.set_attribute('horizontal_fov', '10')  # Horizontal field of view 
+# radar_bp.set_attribute('vertical_fov', '10')    # Vertical field of view
+# radar_bp.set_attribute('range', '20')           # Maximum range
 
-radar_transform = carla.Transform(carla.Location(x=2.0, z=1.0))
+radar_bp.set_attribute('horizontal_fov', str(50))
+radar_bp.set_attribute('vertical_fov', str(2))
+radar_bp.set_attribute('range', '15')
+
+radar_transform = carla.Transform(carla.Location(x=2.0, z=1.0)) #         radar_transform = carla.Transform(carla.Location(x=bound_x + 0.05, z=bound_z-1), carla.Rotation(pitch=5))
 radar = world.spawn_actor(radar_bp, radar_transform, attach_to=ego_vehicle)
 
 target_vehicle_array = []
