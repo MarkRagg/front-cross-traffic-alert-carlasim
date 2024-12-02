@@ -1,9 +1,80 @@
 import carla
 import time
+import math
+import numpy as np
+import weakref
 
 client = carla.Client('localhost', 2000)
 client.set_timeout(10.0)
 world = client.get_world()
+
+class RadarSensor(object):
+    def __init__(self, parent_actor):
+        self.sensor = None
+        self._parent = parent_actor
+        bound_x = 0.5 + self._parent.bounding_box.extent.x
+        bound_y = 0.5 + self._parent.bounding_box.extent.y
+        bound_z = -1 + self._parent.bounding_box.extent.z
+
+        self.velocity_range = 7.5  # m/s
+        world = self._parent.get_world()
+        self.debug = world.debug
+        bp = world.get_blueprint_library().find('sensor.other.radar')
+        bp.set_attribute('horizontal_fov', str(30))
+        bp.set_attribute('vertical_fov', str(2))
+        bp.set_attribute('range', '20')  # Maximum range of the radar
+        self.sensor = world.spawn_actor(
+            bp,
+            carla.Transform(
+                carla.Location(x=bound_x + 0.05, z=bound_z),
+                carla.Rotation(pitch=5)),
+            attach_to=self._parent)
+        # We need a weak reference to self to avoid circular reference
+        weak_self = weakref.ref(self)
+        self.sensor.listen(
+            lambda radar_data: RadarSensor._Radar_callback(weak_self, radar_data, parent_actor.get_velocity().length()))
+
+    @staticmethod
+    def _Radar_callback(weak_self, radar_data, vehicle_velocity):
+        self = weak_self()
+        if not self:
+            return
+        
+        # Extract the radar data points from the radar sensor
+        for detect in radar_data:
+            azi = math.degrees(detect.azimuth)  # Azimuth angle in degrees
+            alt = math.degrees(detect.altitude)  # Altitude angle in degrees
+            fw_vec = carla.Vector3D(x=detect.depth - 0.25)  # Adjust distance slightly
+
+            # for detection in radar_data:
+            distance = detect.depth
+            absolute_speed = abs(detect.velocity) - vehicle_velocity
+            print(f" {len(radar_data)} | Distance: {distance:.2f} m, Speed: {absolute_speed:.2f} m/s", end="\r")
+            # TTC_calculator(distance, absolute_speed)  # Assuming you have a function to calculate Time to Collision (TTC)
+
+            # Get current rotation of radar sensor
+            current_rot = radar_data.transform.rotation
+            # Transform the radar point based on the azimuth and altitude
+            carla.Transform(
+                carla.Location(),
+                carla.Rotation(pitch=current_rot.pitch + alt, yaw=current_rot.yaw + azi, roll=current_rot.roll)
+            ).transform(fw_vec)
+
+            def clamp(min_v, max_v, value):
+                return max(min_v, min(value, max_v))
+
+            norm_velocity = detect.velocity / self.velocity_range  # Normalize velocity
+            r = int(clamp(0.0, 1.0, 1.0 - norm_velocity) * 255.0)
+            g = int(clamp(0.0, 1.0, 1.0 - abs(norm_velocity)) * 255.0)
+            b = int(abs(clamp(-1.0, 0.0, -1.0 - norm_velocity)) * 255.0)
+            
+            # Draw the radar point in the world
+            self.debug.draw_point(
+                radar_data.transform.location + fw_vec,
+                size=0.075,
+                life_time=0.06,
+                persistent_lines=False,
+                color=carla.Color(r, g, b))
 
 def radar_callback(data: carla.RadarMeasurement):
     global min_ttc, min_distance, absolute_speed
@@ -29,43 +100,31 @@ def spawn_vehicle(vehicle_index=0, spawn_index=0, x_offset=0, y_offset=0, patter
     return vehicle
 
 # Spawn ego vehicle
-ego_vehicle = spawn_vehicle(x_offset=155, y_offset=-30)
+ego_vehicle = spawn_vehicle(x_offset=155, y_offset=-45)
+radar_sensor = RadarSensor(ego_vehicle)  # Attach radar to 'vehicle'
 
-# Add the radar sensor
-radar_bp = world.get_blueprint_library().find('sensor.other.radar')
-radar_bp.set_attribute('horizontal_fov', '10')  # Horizontal field of view
-radar_bp.set_attribute('vertical_fov', '10')    # Vertical field of view
-radar_bp.set_attribute('range', '20')           # Maximum range
-
-radar_transform = carla.Transform(carla.Location(x=2.0, z=1.0))
-radar = world.spawn_actor(radar_bp, radar_transform, attach_to=ego_vehicle)
-
-target_vehicle_array = []
 # Spawn target vehicle for testing
-for i in range (0, 2):
+for i in range (0, 5):
     target_vehicle = spawn_vehicle(x_offset=140, y_offset=-80)
     target_vehicle.set_autopilot()
-    target_vehicle_array.append(target_vehicle)
     time.sleep(5) 
 
 
 # Variable to store the minimum TTC
 min_ttc = float('inf')
 
-# Register the radar callback
-radar.listen(radar_callback)
-
 try:
     while True:
         time.sleep(0.5)
-        print(f"Ego vehicle: {absolute_speed}")
+        # print(f"Ego vehicle: {absolute_speed}")
 
 except KeyboardInterrupt:
     print("Keyboard interrupt detected.")
 
 finally:
-    radar.stop()
-    radar.destroy()
+    radar_sensor.sensor.stop()
+    radar_sensor.sensor.destroy()
     ego_vehicle.destroy()
-    for vehicle in target_vehicle_array:
+    vehicles = world.get_actors().filter("vehicle.*")
+    for vehicle in vehicles:
         vehicle.destroy()
