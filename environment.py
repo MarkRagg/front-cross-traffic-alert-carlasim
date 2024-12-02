@@ -1,5 +1,6 @@
 import carla
 import time
+from RadarSensor import RadarSensor 
 
 client = carla.Client('localhost', 2000)
 client.set_timeout(10.0)
@@ -31,45 +32,30 @@ def spawn_vehicle(vehicle_index=0, spawn_index=0, x_offset=0, y_offset=0, patter
 # Spawn ego vehicle
 ego_vehicle = spawn_vehicle(x_offset=155, y_offset=-30)
 
-# Add the radar sensor
-radar_bp = world.get_blueprint_library().find('sensor.other.radar')
-# radar_bp.set_attribute('horizontal_fov', '10')  # Horizontal field of view 
-# radar_bp.set_attribute('vertical_fov', '10')    # Vertical field of view
-# radar_bp.set_attribute('range', '20')           # Maximum range
+radar_left = RadarSensor(ego_vehicle, y=1, pitch=5, yaw=45)   # Attach left radar to 'vehicle'
+radar_right = RadarSensor(ego_vehicle, y=-1, pitch=5, yaw=-45)  # Attach right radar to 'vehicle'
 
-radar_bp.set_attribute('horizontal_fov', str(50))
-radar_bp.set_attribute('vertical_fov', str(2))
-radar_bp.set_attribute('range', '15')
-
-radar_transform = carla.Transform(carla.Location(x=2.0, z=1.0)) #         radar_transform = carla.Transform(carla.Location(x=bound_x + 0.05, z=bound_z-1), carla.Rotation(pitch=5))
-radar = world.spawn_actor(radar_bp, radar_transform, attach_to=ego_vehicle)
+ego_vehicle.set_autopilot(True)
 
 target_vehicle_array = []
 # Spawn target vehicle for testing
-for i in range (0, 2):
-    target_vehicle = spawn_vehicle(x_offset=140, y_offset=-80)
+for i in range (0, 25):
+    target_vehicle = spawn_vehicle(spawn_index=i)
     target_vehicle.set_autopilot()
-    target_vehicle_array.append(target_vehicle)
-    time.sleep(5) 
 
 
 # Variable to store the minimum TTC
 min_ttc = float('inf')
 
-# Register the radar callback
-radar.listen(radar_callback)
-
 try:
     while True:
-        time.sleep(0.5)
-        print(f"Ego vehicle: {absolute_speed}")
+        # time.sleep(0.5)
+        world.tick()
 
 except KeyboardInterrupt:
     print("Keyboard interrupt detected.")
 
 finally:
-    radar.stop()
-    radar.destroy()
-    ego_vehicle.destroy()
-    for vehicle in target_vehicle_array:
+    vehicles = world.get_actors().filter('vehicle.*') 
+    for vehicle in vehicles:
         vehicle.destroy()
