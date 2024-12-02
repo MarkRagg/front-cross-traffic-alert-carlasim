@@ -27,7 +27,7 @@ class RadarSensor(object):
         # We need a weak reference to self to avoid circular reference
         weak_self = weakref.ref(self)
         self.sensor.listen(
-            lambda radar_data: RadarSensor._Radar_callback(weak_self, radar_data))
+            lambda radar_data: RadarSensor._Radar_callback(weak_self, radar_data, parent_actor.get_velocity().length()))
 
     def __del__(self):
         if self.sensor is not None:
@@ -35,7 +35,7 @@ class RadarSensor(object):
             self.sensor.destroy()
 
     @staticmethod
-    def _Radar_callback(weak_self, radar_data):
+    def _Radar_callback(weak_self, radar_data, vehicle_velocity):
         self = weak_self()
         if not self:
             return
@@ -45,6 +45,10 @@ class RadarSensor(object):
             azi = math.degrees(detect.azimuth)  # Azimuth angle in degrees
             alt = math.degrees(detect.altitude)  # Altitude angle in degrees
             fw_vec = carla.Vector3D(x=detect.depth - 0.25)  # Adjust distance slightly
+
+            # Calculating velocity of target vehicle
+            distance = detect.depth
+            absolute_speed = abs(detect.velocity) - vehicle_velocity
 
             # Get current rotation of radar sensor
             current_rot = radar_data.transform.rotation
