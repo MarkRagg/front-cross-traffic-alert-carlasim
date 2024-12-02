@@ -1,8 +1,6 @@
 import carla
 import time
-import math
-import numpy as np
-import weakref
+from RadarSensor import RadarSensor 
 
 client = carla.Client('localhost', 2000)
 client.set_timeout(10.0)
@@ -100,14 +98,18 @@ def spawn_vehicle(vehicle_index=0, spawn_index=0, x_offset=0, y_offset=0, patter
     return vehicle
 
 # Spawn ego vehicle
-ego_vehicle = spawn_vehicle(x_offset=155, y_offset=-45)
-radar_sensor = RadarSensor(ego_vehicle)  # Attach radar to 'vehicle'
+ego_vehicle = spawn_vehicle(x_offset=155, y_offset=-30)
 
+radar_left = RadarSensor(ego_vehicle, y=1, pitch=5, yaw=45)   # Attach left radar to 'vehicle'
+radar_right = RadarSensor(ego_vehicle, y=-1, pitch=5, yaw=-45)  # Attach right radar to 'vehicle'
+
+ego_vehicle.set_autopilot(True)
+
+target_vehicle_array = []
 # Spawn target vehicle for testing
-for i in range (0, 5):
-    target_vehicle = spawn_vehicle(x_offset=140, y_offset=-80)
+for i in range (0, 25):
+    target_vehicle = spawn_vehicle(spawn_index=i)
     target_vehicle.set_autopilot()
-    time.sleep(5) 
 
 
 # Variable to store the minimum TTC
@@ -115,16 +117,13 @@ min_ttc = float('inf')
 
 try:
     while True:
-        time.sleep(0.5)
-        # print(f"Ego vehicle: {absolute_speed}")
+        # time.sleep(0.5)
+        world.tick()
 
 except KeyboardInterrupt:
     print("Keyboard interrupt detected.")
 
 finally:
-    radar_sensor.sensor.stop()
-    radar_sensor.sensor.destroy()
-    ego_vehicle.destroy()
-    vehicles = world.get_actors().filter("vehicle.*")
+    vehicles = world.get_actors().filter('vehicle.*') 
     for vehicle in vehicles:
         vehicle.destroy()
