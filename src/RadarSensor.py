@@ -2,6 +2,9 @@ import carla
 import math
 import weakref
 
+FIVE_KMH = 1.38889
+TEN_KMH = 2.77778
+
 class RadarSensor(object):
     def __init__(self, parent_actor, x=0.5, y=0.5, z=-0.5, pitch=5, yaw=0, roll=0):
         self.sensor = None
@@ -49,6 +52,11 @@ class RadarSensor(object):
             # Calculating velocity of target vehicle
             distance = detect.depth
             absolute_speed = abs(detect.velocity) - vehicle_velocity
+            print(f"{vehicle_velocity}", end="\r")
+
+            if (absolute_speed > FIVE_KMH and (vehicle_velocity < TEN_KMH and vehicle_velocity > 0.5)):
+                print(f"{vehicle_velocity, absolute_speed}")
+                print(f"target distance: {distance}")
 
             # Get current rotation of radar sensor
             current_rot = radar_data.transform.rotation

@@ -52,10 +52,10 @@ radar_left = RadarSensor(ego_vehicle, y=1, pitch=5, yaw=45)   # Attach left rada
 radar_right = RadarSensor(ego_vehicle, y=-1, pitch=5, yaw=-45)  # Attach right radar to 'vehicle'
 
 ego_vehicle.set_autopilot(True)
-time.sleep(3)
+time.sleep(2)
 target_vehicle_array = []
 # Spawn target vehicle for testing
-for i in range (0, 20):
+for i in range (0, 35):
     target_vehicle = spawn_vehicle(spawn_index=i)
     target_vehicle.set_autopilot()
 
