@@ -15,9 +15,9 @@ class RadarSensor(object):
         world = self._parent.get_world()
         self.debug = world.debug
         bp = world.get_blueprint_library().find('sensor.other.radar')
-        bp.set_attribute('horizontal_fov', str(100))
+        bp.set_attribute('horizontal_fov', str(120))
         bp.set_attribute('vertical_fov', str(2))
-        bp.set_attribute('range', '15')  # Maximum range of the radar
+        bp.set_attribute('range', '15')
         self.sensor = world.spawn_actor(
             bp,
             carla.Transform(
