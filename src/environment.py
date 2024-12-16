@@ -48,14 +48,12 @@ def spawn_vehicle(vehicle_index=0, spawn_index=0, x_offset=0, y_offset=0, patter
 ego_vehicle = spawn_vehicle(x_offset=157, y_offset=-30)
 # ego_vehicle = spawn_vehicle()
 
-radar_right = RadarSensor(ego_vehicle, "right", y=1, pitch=5, yaw=50)   # Attach right radar to 'vehicle'
-radar_left = RadarSensor(ego_vehicle, "left", y=-1, pitch=5, yaw=-50)  # Attach left radar to 'vehicle'
+radar_right = RadarSensor(ego_vehicle, "right", y=1, pitch=5, yaw=45)   # Attach right radar to 'vehicle'
+radar_left = RadarSensor(ego_vehicle, "left", y=-1, pitch=5, yaw=-45)  # Attach left radar to 'vehicle'
 
-# ego_vehicle.set_autopilot(True)
-# time.sleep(2)
 target_vehicle_array = []
 # Spawn target vehicle for testing
-for i in range (0, 35):
+for i in range (0, 40):
     target_vehicle = spawn_vehicle(spawn_index=i)
     target_vehicle.set_autopilot()
 
@@ -63,6 +61,8 @@ for i in range (0, 35):
 # Variable to store the minimum TTC
 min_ttc = float('inf')
 
+# time.sleep(4)
+# ego_vehicle.set_autopilot(True)
 try:
     while True:
         # time.sleep(0.5)

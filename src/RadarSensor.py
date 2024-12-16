@@ -125,23 +125,23 @@ class RadarSensor(object):
                 persistent_lines=False,
                 color=carla.Color(r, g, b))
             
-        if len(azis) > 5:
+        if len(azis) > 5 and abs_detected_speed > FIVE_KMH and ego_velocity < 3 and ave < 10:
             azi_avg = sum(azis) / len(azis)
-            print(f"Average azimuth: {azi_avg}")
+            # print(f"Average azimuth: {azi_avg}")
             if azi_avg > LEFT_TO_RIGHT_THRESHOLD and side == "left":
                 # Vehicle is likely moving from left to right (depending on your sensor's orientation)
-                print(f"Vehicle is moving Left to Right: {side}")
+                print(f"Vehicle is moving Left to Right: {side}", end="\r")
                 # Skip this vehicle
             elif azi_avg < RIGHT_TO_LEFT_THRESHOLD and side == "left":
                 # Vehicle is likely moving from right to left
-                print(f"Vehicle is moving Right to Left: {side}")
+                print(f"Vehicle is moving Right to Left: {side}", end="\r")
                 # Skip this vehicle
             if azi_avg > RIGHT_TO_LEFT_THRESHOLD and side == "right":
                 # Vehicle is likely moving from left to right (depending on your sensor's orientation)
-                print(f"Vehicle is moving Left to Right: {side}")
+                print(f"Vehicle is moving Left to Right: {side}", end="\r")
                 # Skip this vehicle
             elif azi_avg < LEFT_TO_RIGHT_THRESHOLD and side == "right":
                 # Vehicle is likely moving from right to left
-                print(f"Vehicle is moving Right to Left: {side}")
+                print(f"Vehicle is moving Right to Left: {side}", end="\r")
                 # Skip this vehicle
             
