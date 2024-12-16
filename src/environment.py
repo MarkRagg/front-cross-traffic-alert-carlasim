@@ -48,8 +48,8 @@ def spawn_vehicle(vehicle_index=0, spawn_index=0, x_offset=0, y_offset=0, patter
 ego_vehicle = spawn_vehicle(x_offset=157, y_offset=-30)
 # ego_vehicle = spawn_vehicle()
 
-radar_left = RadarSensor(ego_vehicle, y=1, pitch=5, yaw=45)   # Attach left radar to 'vehicle'
-radar_right = RadarSensor(ego_vehicle, y=-1, pitch=5, yaw=-45)  # Attach right radar to 'vehicle'
+radar_right = RadarSensor(ego_vehicle, "right", y=1, pitch=5, yaw=50)   # Attach right radar to 'vehicle'
+radar_left = RadarSensor(ego_vehicle, "left", y=-1, pitch=5, yaw=-50)  # Attach left radar to 'vehicle'
 
 # ego_vehicle.set_autopilot(True)
 # time.sleep(2)
@@ -66,7 +66,7 @@ min_ttc = float('inf')
 try:
     while True:
         # time.sleep(0.5)
-        # move_spectator_to(ego_vehicle.get_transform(), spectator)
+        move_spectator_to(ego_vehicle.get_transform(), spectator)
         world.tick()
 
 except KeyboardInterrupt:
