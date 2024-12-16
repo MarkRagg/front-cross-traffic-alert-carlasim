@@ -2,6 +2,8 @@ import carla
 import math
 import weakref
 
+import numpy as np
+
 FIVE_KMH = 1.38889
 TEN_KMH = 2.77778
 
@@ -38,7 +40,7 @@ class RadarSensor(object):
             self.sensor.destroy()
 
     @staticmethod
-    def _Radar_callback(weak_self, radar_data, vehicle_velocity):
+    def _Radar_callback(weak_self, radar_data, ego_velocity):
         self = weak_self()
         if not self:
             return
@@ -51,12 +53,27 @@ class RadarSensor(object):
 
             # Calculating velocity of target vehicle
             distance = detect.depth
-            absolute_speed = abs(detect.velocity) - vehicle_velocity
-            print(f"{vehicle_velocity}", end="\r")
+            abs_detected_speed = abs(detect.velocity) - ego_velocity
+            print(f"{ego_velocity}", end="\r")
+#######
+            points = np.frombuffer(radar_data.raw_data, dtype=np.dtype('f4'))
+            points = np.reshape(points, (len(radar_data), 4))
+            # print(points)
 
-            if (absolute_speed > FIVE_KMH and (vehicle_velocity < TEN_KMH and vehicle_velocity > 0.5)):
-                print(f"{vehicle_velocity, absolute_speed}")
+            # code convert array into list and measure distance
+            L = []
+            pointslist=points.tolist()
+            for i in range(len(pointslist)):
+                L.append(pointslist[i-1][-1])
+
+            ave = sum(L)/len(L)
+            print(ave)
+######
+            # if (abs_detected_speed > FIVE_KMH and (ego_velocity < TEN_KMH and ego_velocity > 0.5) and ave < 10):
+            if (abs_detected_speed > FIVE_KMH and ave < 10):
+                print(f"{ego_velocity, abs_detected_speed}")
                 print(f"target distance: {distance}")
+                print("help")
 
             # Get current rotation of radar sensor
             current_rot = radar_data.transform.rotation
@@ -70,7 +87,10 @@ class RadarSensor(object):
                 return max(min_v, min(value, max_v))
 
             norm_velocity = detect.velocity / self.velocity_range  # Normalize velocity
-            r = int(clamp(0.0, 1.0, 1.0 - norm_velocity) * 255.0)
+            if ave < 10:
+                r = 255
+            else:
+                r = int(clamp(0.0, 1.0, 1.0 - norm_velocity) * 255.0)
             g = int(clamp(0.0, 1.0, 1.0 - abs(norm_velocity)) * 255.0)
             b = int(abs(clamp(-1.0, 0.0, -1.0 - norm_velocity)) * 255.0)
             
@@ -81,3 +101,4 @@ class RadarSensor(object):
                 life_time=0.06,
                 persistent_lines=False,
                 color=carla.Color(r, g, b))
+            

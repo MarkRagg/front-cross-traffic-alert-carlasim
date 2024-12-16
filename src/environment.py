@@ -45,14 +45,14 @@ def spawn_vehicle(vehicle_index=0, spawn_index=0, x_offset=0, y_offset=0, patter
     return vehicle
 
 # Spawn ego vehicle
-# ego_vehicle = spawn_vehicle(x_offset=155, y_offset=-30)
-ego_vehicle = spawn_vehicle()
+ego_vehicle = spawn_vehicle(x_offset=157, y_offset=-30)
+# ego_vehicle = spawn_vehicle()
 
 radar_left = RadarSensor(ego_vehicle, y=1, pitch=5, yaw=45)   # Attach left radar to 'vehicle'
 radar_right = RadarSensor(ego_vehicle, y=-1, pitch=5, yaw=-45)  # Attach right radar to 'vehicle'
 
-ego_vehicle.set_autopilot(True)
-time.sleep(2)
+# ego_vehicle.set_autopilot(True)
+# time.sleep(2)
 target_vehicle_array = []
 # Spawn target vehicle for testing
 for i in range (0, 35):
@@ -66,7 +66,7 @@ min_ttc = float('inf')
 try:
     while True:
         # time.sleep(0.5)
-        move_spectator_to(ego_vehicle.get_transform(), spectator)
+        # move_spectator_to(ego_vehicle.get_transform(), spectator)
         world.tick()
 
 except KeyboardInterrupt:
