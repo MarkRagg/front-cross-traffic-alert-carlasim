@@ -60,7 +60,7 @@ class RadarSensor(object):
             distance = detect.depth
             abs_detected_speed = abs(detect.velocity) - ego_velocity
             # print(f"{ego_velocity}", end="\r")
-##w#####
+##w####
             points = np.frombuffer(radar_data.raw_data, dtype=np.dtype('f4'))
             points = np.reshape(points, (len(radar_data), 4))
             # print(points)
@@ -124,24 +124,25 @@ class RadarSensor(object):
                 life_time=0.06,
                 persistent_lines=False,
                 color=carla.Color(r, g, b))
-            
-        if len(azis) > 5 and abs_detected_speed > FIVE_KMH and ego_velocity < 3 and ave < 10:
+        
+        # print(ave, end="\r")
+        # TODO: Implement logic to determine if vehicle is moving from left to right or right to left
+        if len(azis) > 5 and abs_detected_speed > FIVE_KMH and ego_velocity < 10 and ave < 10:
             azi_avg = sum(azis) / len(azis)
-            # print(f"Average azimuth: {azi_avg}")
+            print(f"Average azimuth: {azi_avg}")
             if azi_avg > LEFT_TO_RIGHT_THRESHOLD and side == "left":
                 # Vehicle is likely moving from left to right (depending on your sensor's orientation)
-                print(f"Vehicle is moving Left to Right: {side}", end="\r")
+                print(f"Vehicle is moving Left to Right: {side}")
                 # Skip this vehicle
-            elif azi_avg < RIGHT_TO_LEFT_THRESHOLD and side == "left":
+            # elif azi_avg < RIGHT_TO_LEFT_THRESHOLD and side == "left":
                 # Vehicle is likely moving from right to left
-                print(f"Vehicle is moving Right to Left: {side}", end="\r")
+                # print(f"Vehicle is moving Right to Left: {side}", end="\r")
                 # Skip this vehicle
-            if azi_avg > RIGHT_TO_LEFT_THRESHOLD and side == "right":
-                # Vehicle is likely moving from left to right (depending on your sensor's orientation)
-                print(f"Vehicle is moving Left to Right: {side}", end="\r")
-                # Skip this vehicle
-            elif azi_avg < LEFT_TO_RIGHT_THRESHOLD and side == "right":
-                # Vehicle is likely moving from right to left
-                print(f"Vehicle is moving Right to Left: {side}", end="\r")
-                # Skip this vehicle
+            # elif azi_avg > LEFT_TO_RIGHT_THRESHOLD and side == "right":
+            # #     # Vehicle is likely moving from left to right (depending on your sensor's orientation)
+            #     print(f"Vehicle is moving R to L: {side}")
+            # #     # Skip this vehicle
+            elif azi_avg < RIGHT_TO_LEFT_THRESHOLD and side == "right":
+            #     # Vehicle is likely moving from right to left
+                print(f"Vehicle is moving Right to Left: {side}")
             
