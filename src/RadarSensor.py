@@ -8,19 +8,22 @@ import numpy as np
 
 FIVE_KMH = 1.38889
 TEN_KMH = 2.77778
-LEFT_TO_RIGHT_THRESHOLD = 30  # Example threshold for distance or velocity change to filter out movements
-RIGHT_TO_LEFT_THRESHOLD = -30  # Negative threshold for opposite movement
+LEFT_TO_RIGHT_THRESHOLD = 25  # Example threshold for distance or velocity change to filter out movements
+RIGHT_TO_LEFT_THRESHOLD = -25  # Negative threshold for opposite movement
 
 class RadarSensor(object):
     side = None
-    # TODO: reset this variable after a certain time
-    lasts_detections = []
+    # lasts_detections = []
+    left_detect = False
+    right_detect = False
 
     @staticmethod
     def reset_detections_after_time(duration: int):
-        time.sleep(duration)
-        RadarSensor.lasts_detections = []
-        print("Detections reset!")
+        while True:
+            time.sleep(duration)
+            # RadarSensor.lasts_detections = []
+            RadarSensor.left_detect = False
+            RadarSensor.right_detect = False
 
     @staticmethod
     def start_timer(duration: int):
@@ -78,12 +81,8 @@ class RadarSensor(object):
             # Calculating velocity of target vehicle
             distance = detect.depth
             abs_detected_speed = abs(detect.velocity) - ego_velocity
-            # print(f"{ego_velocity}", end="\r")
-##w####
             points = np.frombuffer(radar_data.raw_data, dtype=np.dtype('f4'))
             points = np.reshape(points, (len(radar_data), 4))
-            # print(points)
-
             # code convert array into list and measure distance
             L = []
             pointslist=points.tolist()
@@ -91,34 +90,6 @@ class RadarSensor(object):
                 L.append(pointslist[i-1][-1])
 
             ave = sum(L)/len(L)
-            # print(ave, end="\r")
-######
-            # if (abs_detected_speed > FIVE_KMH and (ego_velocity < 3) and ave < 20):
-            # if (abs_detected_speed > FIVE_KMH and ave < 10):
-                # print(f"{ego_velocity, abs_detected_speed}")
-                # print(f"target distance: {distance}")
-                # print(side, end="\r")
-        
-                # if azi > LEFT_TO_RIGHT_THRESHOLD and side == "left":
-                #     # Vehicle is likely moving from left to right (depending on your sensor's orientation)
-                #     print(f"Vehicle is moving Left to Right: {side}, Speed: {azi}")
-                #     # Skip this vehicle
-                #     continue
-                # elif azi < RIGHT_TO_LEFT_THRESHOLD and side == "left":
-                #     # Vehicle is likely moving from right to left
-                #     print(f"Vehicle is moving Right to Left: {side}, Speed: {azi}")
-                #     # Skip this vehicle
-                #     continue
-                # if azi > RIGHT_TO_LEFT_THRESHOLD and side == "right":
-                #     # Vehicle is likely moving from left to right (depending on your sensor's orientation)
-                #     print(f"Vehicle is moving Left to Right: {side}, Speed: {azi}")
-                #     # Skip this vehicle
-                #     continue
-                # elif azi < LEFT_TO_RIGHT_THRESHOLD and side == "right":
-                #     # Vehicle is likely moving from right to left
-                #     print(f"Vehicle is moving Right to Left: {side}, Speed: {azi}")
-                #     # Skip this vehicle
-                #     continue
 
             # Get current rotation of radar sensor
             current_rot = radar_data.transform.rotation
@@ -143,27 +114,19 @@ class RadarSensor(object):
                 life_time=0.06,
                 persistent_lines=False,
                 color=carla.Color(r, g, b))
-        
-        # print(ave, end="\r")
-        # TODO: Implement logic to determine if vehicle is moving from left to right or right to left
 
-        RadarSensor.lasts_detections
-
-        if len(azis) > 7 and abs_detected_speed > FIVE_KMH and ego_velocity < 10 and ave < 10:
+        if len(azis) > 5 and abs_detected_speed > FIVE_KMH and ego_velocity < 10 and ave < 20:
             azi_avg = sum(azis) / len(azis)
-            if len(RadarSensor.lasts_detections) >= 3:
-                lasts_detections_avg = sum(RadarSensor.lasts_detections[:-3]) / 3
-            else:
-                lasts_detections_avg = 0.5
-            print(f"{RadarSensor.lasts_detections, azi_avg, lasts_detections_avg}", end="\r")
-            if azi_avg > LEFT_TO_RIGHT_THRESHOLD and side == "left" and lasts_detections_avg <= 0.5:
+            # if len(RadarSensor.lasts_detections) >= 3:
+            #     lasts_detections_avg = sum(RadarSensor.lasts_detections[:-3]) / len(RadarSensor.lasts_detections)
+            # else:
+            #     lasts_detections_avg = 0.5
+            # print(f"{RadarSensor.lasts_detections, azi_avg, lasts_detections_avg}", end="\r")
+            if azi_avg > LEFT_TO_RIGHT_THRESHOLD and side == "left" and not RadarSensor.right_detect:
                 print(f"Vehicle is moving Left to Right: {side}")
-                RadarSensor.lasts_detections.append(0)
-            elif azi_avg < RIGHT_TO_LEFT_THRESHOLD and side == "right" and lasts_detections_avg >= 0.5:
+                RadarSensor.left_detect = True
+            #     RadarSensor.lasts_detections.append(0)
+            elif azi_avg < RIGHT_TO_LEFT_THRESHOLD and side == "right" and not RadarSensor.left_detect:
                 print(f"Vehicle is moving Right to Left: {side}")
-                RadarSensor.lasts_detections.append(1)
-
-            # elif azi_avg < RIGHT_TO_LEFT_THRESHOLD and side == "left":
-                # print(f"Vehicle is moving Right to Left: {side}", end="\r")
-            # elif azi_avg > LEFT_TO_RIGHT_THRESHOLD and side == "right":
-            #     print(f"Vehicle is moving R to L: {side}")
+                RadarSensor.right_detect = True
+            #     RadarSensor.lasts_detections.append(1)
