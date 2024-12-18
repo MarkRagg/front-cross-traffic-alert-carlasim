@@ -55,6 +55,9 @@ ego_vehicle = spawn_vehicle(spawn_index=1, x_offset=10, y_offset=-9, rotation=Ro
 radar_right = RadarSensor(ego_vehicle, "right", y=1, pitch=5, yaw=45)   # Attach right radar to 'vehicle'
 radar_left = RadarSensor(ego_vehicle, "left", y=-1, pitch=5, yaw=-45)  # Attach left radar to 'vehicle'
 
+radar_right.start_timer(5)
+radar_left.start_timer(5)
+
 target_vehicle_array = []
 # Spawn target vehicle for testing
 for i in range (2, 50): # 0 is the ego vehicle
