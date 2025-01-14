@@ -3,7 +3,6 @@ import math
 import weakref
 import time
 import threading
-
 import numpy as np
 
 FIVE_KMH = 1.38889
@@ -13,7 +12,6 @@ RIGHT_TO_LEFT_THRESHOLD = -25  # Negative threshold for opposite movement
 
 class RadarSensor(object):
     side = None
-    # lasts_detections = []
     left_detect = False
     right_detect = False
 
@@ -21,15 +19,13 @@ class RadarSensor(object):
     def reset_detections_after_time(duration: int):
         while True:
             time.sleep(duration)
-            # RadarSensor.lasts_detections = []
             RadarSensor.left_detect = False
             RadarSensor.right_detect = False
 
     @staticmethod
     def start_timer(duration: int):
-        # Create a thread that will call `reset_detections_after_time`
         reset_thread = threading.Thread(target=RadarSensor.reset_detections_after_time, args=(duration,))
-        reset_thread.daemon = True  # Daemonize the thread to ensure it exits when the program exits
+        reset_thread.daemon = True
         reset_thread.start()
 
 
@@ -43,7 +39,7 @@ class RadarSensor(object):
 
         side = side
 
-        self.velocity_range = 7.5  # m/s
+        self.velocity_range = 7.5
         world = self._parent.get_world()
         self.debug = world.debug
         bp = world.get_blueprint_library().find('sensor.other.radar')
@@ -83,7 +79,6 @@ class RadarSensor(object):
             abs_detected_speed = abs(detect.velocity) - ego_velocity
             points = np.frombuffer(radar_data.raw_data, dtype=np.dtype('f4'))
             points = np.reshape(points, (len(radar_data), 4))
-            # code convert array into list and measure distance
             L = []
             pointslist=points.tolist()
             for i in range(len(pointslist)):
@@ -115,18 +110,11 @@ class RadarSensor(object):
                 persistent_lines=False,
                 color=carla.Color(r, g, b))
 
-        if len(azis) > 5 and abs_detected_speed > FIVE_KMH and ego_velocity < 10 and ave < 20:
+        if len(azis) > 5 and abs_detected_speed > FIVE_KMH and ego_velocity < TEN_KMH and ave < 20:
             azi_avg = sum(azis) / len(azis)
-            # if len(RadarSensor.lasts_detections) >= 3:
-            #     lasts_detections_avg = sum(RadarSensor.lasts_detections[:-3]) / len(RadarSensor.lasts_detections)
-            # else:
-            #     lasts_detections_avg = 0.5
-            # print(f"{RadarSensor.lasts_detections, azi_avg, lasts_detections_avg}", end="\r")
             if azi_avg > LEFT_TO_RIGHT_THRESHOLD and side == "left" and not RadarSensor.right_detect:
                 print(f"Vehicle is moving Left to Right: {side}")
                 RadarSensor.left_detect = True
-            #     RadarSensor.lasts_detections.append(0)
             elif azi_avg < RIGHT_TO_LEFT_THRESHOLD and side == "right" and not RadarSensor.left_detect:
                 print(f"Vehicle is moving Right to Left: {side}")
                 RadarSensor.right_detect = True
-            #     RadarSensor.lasts_detections.append(1)

@@ -5,8 +5,7 @@ from carla import Rotation
 
 client = carla.Client('localhost', 2000)
 client.set_timeout(10.0)
-world = client.load_world('Town10HD')  # 1, 2, 3, 7
-# spectator = world.get_spectator()
+world = client.load_world('Town10HD')
 
 def move_spectator_to(transform, spectator, distance=5.0, x=0, y=0, z=3, yaw=0, pitch=-20, roll=0):
     back_location = transform.location - transform.get_forward_vector() * distance
