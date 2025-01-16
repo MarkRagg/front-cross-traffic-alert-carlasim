@@ -43,7 +43,7 @@ class RadarSensor(object):
         self.sensor = None
         self._parent = parent_actor
         self.side = side
-
+        print("B")
         bound_x = x + self._parent.bounding_box.extent.x
         bound_y = y + self._parent.bounding_box.extent.y
         bound_z = z + self._parent.bounding_box.extent.z
