@@ -1,5 +1,4 @@
 import carla
-import time
 from RadarSensor import RadarSensor 
 from carla import Rotation
 
@@ -7,6 +6,11 @@ client = carla.Client('localhost', 2000)
 client.set_timeout(10.0)
 world = client.load_world('Town10HD')
 spectator = world.get_spectator()
+
+def accelerate_vehicle(vehicle, throttle_value=0.3):
+    control = carla.VehicleControl()
+    control.throttle = throttle_value
+    vehicle.apply_control(control)
 
 def move_spectator_to(transform, spectator, distance=5.0, x=0, y=0, z=3, yaw=0, pitch=-20, roll=0):
     back_location = transform.location - transform.get_forward_vector() * distance
@@ -32,21 +36,14 @@ def spawn_vehicle(vehicle_index=0, spawn_index=0, x_offset=0, y_offset=0, patter
     vehicle = world.spawn_actor(vehicle_bp, spawn_point)
     return vehicle
 
-# ego_vehicle = spawn_vehicle(x_offset=157, y_offset=-30)
 ego_vehicle = spawn_vehicle(x_offset=181, y_offset=-20, rotation=Rotation(yaw=180, pitch=0, roll=0))
-# ego_vehicle = spawn_vehicle(spawn_index=1, x_offset=10, y_offset=-9, rotation=Rotation(yaw=90, pitch=0, roll=0))
 
 radar_right = RadarSensor(ego_vehicle, "right", y=1, pitch=5, yaw=60)
 radar_left = RadarSensor(ego_vehicle, "left", y=-1, pitch=5, yaw=-60)
 
-radar_right.start_timer(3)
-radar_left.start_timer(3)
-
 # Spawn target vehicle for testing
-target_vehicle_array = []
-for i in range (1, 50): # 0 is the ego vehicle
-    target_vehicle = spawn_vehicle(spawn_index=i)
-    target_vehicle.set_autopilot()
+target_vehicle = spawn_vehicle(x_offset=175, y_offset=-40, rotation=Rotation(yaw=90, pitch=0, roll=0))
+accelerate_vehicle(target_vehicle)
 
 try:
     while True:

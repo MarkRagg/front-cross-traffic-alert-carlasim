@@ -31,6 +31,7 @@ class RadarSensor(object):
             time.sleep(duration)
             RadarSensor.left_detect = False
             RadarSensor.right_detect = False
+            # print("Resetting detections...")
 
     @staticmethod
     def start_timer(duration: int):
