@@ -43,7 +43,6 @@ class RadarSensor(object):
         self.sensor = None
         self._parent = parent_actor
         self.side = side
-        print("B")
         bound_x = x + self._parent.bounding_box.extent.x
         bound_y = y + self._parent.bounding_box.extent.y
         bound_z = z + self._parent.bounding_box.extent.z
@@ -123,9 +122,9 @@ class RadarSensor(object):
             azi_avg = sum(azis) / len(azis)
             if azi_avg > LEFT_TO_RIGHT_THRESHOLD and side == "left" and not RadarSensor.right_detect:
                 print(f"Vehicle is moving Left to Right: {side}")
-                # publish.single(topic=MQTT_LEFT_TOPIC, payload="vehicle detected!", hostname=MQTT_BROKER)
+                publish.single(topic=MQTT_LEFT_TOPIC, payload="vehicle detected!", hostname=MQTT_BROKER)
                 RadarSensor.left_detect = True
             elif azi_avg < RIGHT_TO_LEFT_THRESHOLD and side == "right" and not RadarSensor.left_detect:
                 print(f"Vehicle is moving Right to Left: {side}")
-                # publish.single(topic=MQTT_RIGHT_TOPIC, payload="vehicle detected!", hostname=MQTT_BROKER)
+                publish.single(topic=MQTT_RIGHT_TOPIC, payload="vehicle detected!", hostname=MQTT_BROKER)
                 RadarSensor.right_detect = True

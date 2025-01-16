@@ -1,5 +1,5 @@
 import carla
-from sensors.radar_sensor import RadarSensor
+from test.sensors.radar_sensor import RadarSensor
 from carla import Rotation
 
 client = carla.Client('localhost', 2000)
@@ -33,9 +33,9 @@ def spawn_left_vehicle():
 
 def spawn_right_vehicle():
     return spawn_vehicle(x_offset=170, y_offset=-80, rotation=Rotation(yaw=90, pitch=0, roll=0))
-  
+
 def spawn_vehicles(num_vehicles=50):
-     for i in range (1, num_vehicles): # 0 is the ego vehicle
+    for i in range (1, num_vehicles): # 0 is the ego vehicle
         target_vehicle = spawn_vehicle(spawn_index=i)
         target_vehicle.set_autopilot()
 
@@ -54,10 +54,3 @@ def accelerate_vehicle(vehicle, throttle_value=0.3):
     control = carla.VehicleControl()
     control.throttle = throttle_value
     vehicle.apply_control(control)
-
-def radar_setup(ego_vehicle):
-    radar_right = RadarSensor(ego_vehicle, "right", y=1, pitch=5, yaw=60)
-    radar_left = RadarSensor(ego_vehicle, "left", y=-1, pitch=5, yaw=-60)
-    print("O")
-    radar_right.start_timer(3)
-    radar_left.start_timer(3)

@@ -13,12 +13,14 @@ def show_menu():
 def main():
     show_menu()
     ego_vehicle = utils.spawn_ego_vehicle()
+
     radar_right = RadarSensor(ego_vehicle, "right", y=1, pitch=5, yaw=60)
     radar_left = RadarSensor(ego_vehicle, "left", y=-1, pitch=5, yaw=-60)
-    
     radar_right.start_timer(3)
-    radar_left.start_timer(3)    
+    radar_left.start_timer(3)
+    
     utils.move_spectator_to(ego_vehicle.get_transform(), utils.spectator)
+
     choice = input("Enter the number of the option: ")
     if choice == '1':
         utils.spawn_vehicles(50)
