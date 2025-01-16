@@ -83,7 +83,6 @@ class RadarSensor(object):
             fw_vec = carla.Vector3D(x=detect.depth - 0.25)  # Adjust distance slightly
             azis.append(azi)
             # Calculating velocity of target vehicle
-            distance = detect.depth
             abs_detected_speed = abs(detect.velocity) - ego_velocity
             points = np.frombuffer(radar_data.raw_data, dtype=np.dtype('f4'))
             points = np.reshape(points, (len(radar_data), 4))

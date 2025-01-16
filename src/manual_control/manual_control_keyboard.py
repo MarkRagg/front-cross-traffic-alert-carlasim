@@ -357,8 +357,7 @@ class World(object):
         self.camera_manager.index = None
 
     def destroy(self):
-        if self.radar_sensor is not None:
-            self.toggle_radar()
+        self.toggle_radar() 
         sensors = [
             self.camera_manager.sensor,
             self.collision_sensor.sensor,
@@ -1019,15 +1018,27 @@ class IMUSensor(object):
 # -- RadarSensor ---------------------------------------------------------------
 # ==============================================================================
 
+
+import paho.mqtt.client as mqtt
+import paho.mqtt.publish as publish
+
 FIVE_KMH = 1.38889
 TEN_KMH = 2.77778
 LEFT_TO_RIGHT_THRESHOLD = 25  # Example threshold for distance or velocity change to filter out movements
 RIGHT_TO_LEFT_THRESHOLD = -25  # Negative threshold for opposite movement
 
+# MQTT settings
+MQTT_BROKER = "broker.mqtt-dashboard.com"
+MQTT_PORT = 1883
+MQTT_LEFT_TOPIC = "front_cross_traffic_alert/left"
+MQTT_RIGHT_TOPIC = "front_cross_traffic_alert/right"
+
 class RadarSensor(object):
     side = None
     left_detect = False
     right_detect = False
+    mqtt_client = mqtt.Client()
+    mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
 
     @staticmethod
     def reset_detections_after_time(duration: int):
@@ -1046,12 +1057,10 @@ class RadarSensor(object):
     def __init__(self, parent_actor, side, x=0.5, y=0.5, z=-0.5, pitch=5, yaw=0, roll=0):
         self.sensor = None
         self._parent = parent_actor
-
+        self.side = side
         bound_x = x + self._parent.bounding_box.extent.x
         bound_y = y + self._parent.bounding_box.extent.y
         bound_z = z + self._parent.bounding_box.extent.z
-
-        side = side
 
         self.velocity_range = 7.5
         world = self._parent.get_world()
@@ -1059,14 +1068,14 @@ class RadarSensor(object):
         bp = world.get_blueprint_library().find('sensor.other.radar')
         bp.set_attribute('horizontal_fov', str(90))
         bp.set_attribute('vertical_fov', str(2))
-        bp.set_attribute('range', '15')
+        bp.set_attribute('range', '20')
         self.sensor = world.spawn_actor(
             bp,
             carla.Transform(
                 carla.Location(x=bound_x + 0.05, z=bound_z, y=bound_y),
                 carla.Rotation(pitch=pitch, yaw=yaw, roll=roll)),
             attach_to=self._parent)
-        # We need a weak reference to self to avoid circular reference
+        # weak_self to avoid circular reference
         weak_self = weakref.ref(self)
         self.sensor.listen(
             lambda radar_data: RadarSensor._Radar_callback(weak_self, radar_data, parent_actor.get_velocity().length(), side))
@@ -1089,7 +1098,6 @@ class RadarSensor(object):
             fw_vec = carla.Vector3D(x=detect.depth - 0.25)  # Adjust distance slightly
             azis.append(azi)
             # Calculating velocity of target vehicle
-            distance = detect.depth
             abs_detected_speed = abs(detect.velocity) - ego_velocity
             points = np.frombuffer(radar_data.raw_data, dtype=np.dtype('f4'))
             points = np.reshape(points, (len(radar_data), 4))
@@ -1124,16 +1132,16 @@ class RadarSensor(object):
                 persistent_lines=False,
                 color=carla.Color(r, g, b))
 
-        if len(azis) > 5 and abs_detected_speed > FIVE_KMH and ego_velocity < 10 and ave < 20:
+        if len(azis) > 5 and abs_detected_speed > FIVE_KMH and ego_velocity < TEN_KMH and ave < 10:
             azi_avg = sum(azis) / len(azis)
             if azi_avg > LEFT_TO_RIGHT_THRESHOLD and side == "left" and not RadarSensor.right_detect:
                 print(f"Vehicle is moving Left to Right: {side}")
+                publish.single(topic=MQTT_LEFT_TOPIC, payload="vehicle detected!", hostname=MQTT_BROKER)
                 RadarSensor.left_detect = True
             elif azi_avg < RIGHT_TO_LEFT_THRESHOLD and side == "right" and not RadarSensor.left_detect:
                 print(f"Vehicle is moving Right to Left: {side}")
+                publish.single(topic=MQTT_RIGHT_TOPIC, payload="vehicle detected!", hostname=MQTT_BROKER)
                 RadarSensor.right_detect = True
-
-
             
 
 # ==============================================================================
@@ -1367,10 +1375,7 @@ def game_loop(args):
             client.stop_recorder()
 
         if world is not None:
-            vehicles = world.get_actors().filter('vehicle.*') 
-        for vehicle in vehicles:
-            vehicle.destroy()
-        world.destroy()
+            world.destroy()
 
         pygame.quit()
 
