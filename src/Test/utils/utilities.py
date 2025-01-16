@@ -1,5 +1,4 @@
 import carla
-from test.sensors.radar_sensor import RadarSensor
 from carla import Rotation
 
 client = carla.Client('localhost', 2000)
@@ -32,7 +31,7 @@ def spawn_left_vehicle():
     return spawn_vehicle(x_offset=175, y_offset=20, rotation=Rotation(yaw=270, pitch=0, roll=0))
 
 def spawn_right_vehicle():
-    return spawn_vehicle(x_offset=170, y_offset=-80, rotation=Rotation(yaw=90, pitch=0, roll=0))
+    return spawn_vehicle(x_offset=171, y_offset=-70, rotation=Rotation(yaw=90, pitch=0, roll=0))
 
 def spawn_vehicles(num_vehicles=50):
     for i in range (1, num_vehicles): # 0 is the ego vehicle

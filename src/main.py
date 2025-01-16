@@ -1,4 +1,4 @@
-import time
+import os
 import test.utils.utilities as utils
 from test.sensors.radar_sensor import RadarSensor
 
@@ -14,29 +14,37 @@ def main():
     show_menu()
     ego_vehicle = utils.spawn_ego_vehicle()
 
-    radar_right = RadarSensor(ego_vehicle, "right", y=1, pitch=5, yaw=60)
-    radar_left = RadarSensor(ego_vehicle, "left", y=-1, pitch=5, yaw=-60)
+    radar_right = RadarSensor(ego_vehicle, "right", y=1, pitch=5, yaw=50)
+    radar_left = RadarSensor(ego_vehicle, "left", y=-1, pitch=5, yaw=-50)
     radar_right.start_timer(3)
     radar_left.start_timer(3)
     
     utils.move_spectator_to(ego_vehicle.get_transform(), utils.spectator)
 
-    choice = input("Enter the number of the option: ")
-    if choice == '1':
-        utils.spawn_vehicles(50)
-    elif choice == '2':
-        v=utils.spawn_left_vehicle()
-        utils.accelerate_vehicle(v)
-    elif choice == '3':
-        utils.accelerate_vehicle(utils.spawn_right_vehicle())
-    elif choice == '4':
-        utils.accelerate_vehicle(utils.spawn_left_vehicle())
-        utils.accelerate_vehicle(utils.spawn_right_vehicle())
-    elif choice == '0':
-        utils.world_cleanup()
-        exit()
-    else:
-        print("Invalid choice, please try again.")
+    while True:
+        choice = input("Enter the number of the option: ")
+        if choice == '1':
+            utils.spawn_vehicles(50)
+            break
+        elif choice == '2':
+            utils.accelerate_vehicle(utils.spawn_left_vehicle())
+            break
+        elif choice == '3':
+            utils.accelerate_vehicle(utils.spawn_right_vehicle())
+            break
+        elif choice == '4':
+            utils.accelerate_vehicle(utils.spawn_left_vehicle())
+            utils.accelerate_vehicle(utils.spawn_right_vehicle())
+            break
+        elif choice == '0':
+            utils.world_cleanup()
+            exit()
+        else:
+            print("Invalid choice, please try again.")
+
+    os.system('cls')
+    print("Open the CARLA server window!")
+
     try:
         while True:
             utils.world.tick()
