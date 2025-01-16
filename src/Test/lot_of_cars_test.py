@@ -1,6 +1,5 @@
 import carla
-import time
-from RadarSensor import RadarSensor 
+from sensors.radar_sensor import RadarSensor 
 from carla import Rotation
 
 client = carla.Client('localhost', 2000)

@@ -22,8 +22,8 @@ class RadarSensor(object):
     side = None
     left_detect = False
     right_detect = False
-    # mqtt_client = mqtt.Client()
-    # mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
+    mqtt_client = mqtt.Client()
+    mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
 
     @staticmethod
     def reset_detections_after_time(duration: int):
@@ -31,7 +31,6 @@ class RadarSensor(object):
             time.sleep(duration)
             RadarSensor.left_detect = False
             RadarSensor.right_detect = False
-            # print("Resetting detections...")
 
     @staticmethod
     def start_timer(duration: int):
@@ -62,7 +61,7 @@ class RadarSensor(object):
                 carla.Location(x=bound_x + 0.05, z=bound_z, y=bound_y),
                 carla.Rotation(pitch=pitch, yaw=yaw, roll=roll)),
             attach_to=self._parent)
-        # We need a weak reference to self to avoid circular reference
+        # weak_self to avoid circular reference
         weak_self = weakref.ref(self)
         self.sensor.listen(
             lambda radar_data: RadarSensor._Radar_callback(weak_self, radar_data, parent_actor.get_velocity().length(), side))
@@ -120,7 +119,7 @@ class RadarSensor(object):
                 persistent_lines=False,
                 color=carla.Color(r, g, b))
 
-        if len(azis) > 5 and abs_detected_speed > FIVE_KMH and ego_velocity < TEN_KMH and ave < 20:
+        if len(azis) > 5 and abs_detected_speed > FIVE_KMH and ego_velocity < TEN_KMH and ave < 10:
             azi_avg = sum(azis) / len(azis)
             if azi_avg > LEFT_TO_RIGHT_THRESHOLD and side == "left" and not RadarSensor.right_detect:
                 print(f"Vehicle is moving Left to Right: {side}")
