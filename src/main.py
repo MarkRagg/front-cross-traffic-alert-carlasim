@@ -1,4 +1,6 @@
-import utils.utilities as utils
+import time
+import test.utils.utilities as utils
+from test.sensors.radar_sensor import RadarSensor
 
 def show_menu():
     print("FRONT CROSS TRAFFIC ALERT CARLA SIMULATOR TEST:")
@@ -11,15 +13,18 @@ def show_menu():
 def main():
     show_menu()
     ego_vehicle = utils.spawn_ego_vehicle()
-    utils.radar_setup(ego_vehicle)
+    radar_right = RadarSensor(ego_vehicle, "right", y=1, pitch=5, yaw=60)
+    radar_left = RadarSensor(ego_vehicle, "left", y=-1, pitch=5, yaw=-60)
+    
+    radar_right.start_timer(3)
+    radar_left.start_timer(3)    
     utils.move_spectator_to(ego_vehicle.get_transform(), utils.spectator)
-
     choice = input("Enter the number of the option: ")
-
     if choice == '1':
         utils.spawn_vehicles(50)
     elif choice == '2':
-        utils.accelerate_vehicle(utils.spawn_left_vehicle())
+        v=utils.spawn_left_vehicle()
+        utils.accelerate_vehicle(v)
     elif choice == '3':
         utils.accelerate_vehicle(utils.spawn_right_vehicle())
     elif choice == '4':
@@ -30,7 +35,6 @@ def main():
         exit()
     else:
         print("Invalid choice, please try again.")
-
     try:
         while True:
             utils.world.tick()
