@@ -1,6 +1,6 @@
 import carla
-from RadarSensor import RadarSensor 
 from carla import Rotation
+from sensors.radar_sensor import RadarSensor
 
 client = carla.Client('localhost', 2000)
 client.set_timeout(10.0)
@@ -48,8 +48,8 @@ right_vehicle = spawn_vehicle(x_offset=170, y_offset=-80, rotation=Rotation(yaw=
 accelerate_vehicle(left_vehicle)
 accelerate_vehicle(right_vehicle)
 
-radar_right.start_timer(3)
-radar_left.start_timer(3)
+radar_right.start_timer(4)
+radar_left.start_timer(4)
 
 try:
     while True:

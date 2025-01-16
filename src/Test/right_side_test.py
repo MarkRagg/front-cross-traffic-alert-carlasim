@@ -1,6 +1,6 @@
 import carla
-from RadarSensor import RadarSensor 
 from carla import Rotation
+from sensors.radar_sensor import RadarSensor
 
 client = carla.Client('localhost', 2000)
 client.set_timeout(10.0)
