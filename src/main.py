@@ -7,7 +7,7 @@ def show_menu():
     print("1. Test with a lot of cars")
     print("2. Left side test")
     print("3. Right side test")
-    print("4. Cobined test")
+    print("4. Combined test")
     print("0. Exit")
 
 def main():
