@@ -9,8 +9,8 @@ import paho.mqtt.publish as publish
 
 FIVE_KMH = 1.38889
 TEN_KMH = 2.77778
-LEFT_TO_RIGHT_THRESHOLD = 25  # Example threshold for distance or velocity change to filter out movements
-RIGHT_TO_LEFT_THRESHOLD = -25  # Negative threshold for opposite movement
+LEFT_TO_RIGHT_THRESHOLD = 27  # Example threshold for distance or velocity change to filter out movements
+RIGHT_TO_LEFT_THRESHOLD = -20  # Negative threshold for opposite movement
 
 # MQTT settings
 MQTT_BROKER = "broker.mqtt-dashboard.com"
@@ -117,7 +117,7 @@ class RadarSensor(object):
                 persistent_lines=False,
                 color=carla.Color(r, g, b))
 
-        if len(azis) > 5 and abs_detected_speed > FIVE_KMH and ego_velocity < TEN_KMH and ave < 10:
+        if len(azis) > 5 and abs_detected_speed > FIVE_KMH and ego_velocity < TEN_KMH and ave < 20:
             azi_avg = sum(azis) / len(azis)
             if azi_avg > LEFT_TO_RIGHT_THRESHOLD and side == "left" and not RadarSensor.right_detect:
                 print(f"Vehicle is moving Left to Right: {side}")

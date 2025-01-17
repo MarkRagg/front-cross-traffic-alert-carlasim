@@ -3,6 +3,8 @@ from carla import Rotation
 
 client = carla.Client('localhost', 2000)
 client.set_timeout(10.0)
+# world = client.load_world('Town10HD')
+world = client.load_world('Town01')
 world = client.get_world()
 spectator = world.get_spectator()
 
@@ -24,13 +26,19 @@ def move_spectator_to(transform, spectator, distance=5.0, x=0, y=0, z=3, yaw=0, 
     spectator_transform = carla.Transform(back_location, transform.rotation)
     spectator.set_transform(spectator_transform)
 
-def spawn_ego_vehicle():
+def spawn_ego_vehicle(city="Town10"):
+    if city == "Town01":
+        return spawn_vehicle(spawn_index=1, x_offset=22, y_offset=-38, rotation=Rotation(yaw=0, pitch=0, roll=0))
     return spawn_vehicle(x_offset=181, y_offset=-20, rotation=Rotation(yaw=180, pitch=0, roll=0))
 
-def spawn_left_vehicle():
+def spawn_left_vehicle(city="Town10"):
+    if city == "Town01":
+        return spawn_vehicle(spawn_index=1, x_offset=35, y_offset=-60, rotation=Rotation(yaw=90, pitch=0, roll=0))
     return spawn_vehicle(x_offset=175, y_offset=20, rotation=Rotation(yaw=270, pitch=0, roll=0))
 
-def spawn_right_vehicle():
+def spawn_right_vehicle(city="Town10"):
+    if city == "Town01":
+        return spawn_vehicle(spawn_index=1, x_offset=38, y_offset=-10, rotation=Rotation(yaw=270, pitch=0, roll=0))
     return spawn_vehicle(x_offset=171, y_offset=-70, rotation=Rotation(yaw=90, pitch=0, roll=0))
 
 def spawn_vehicles(num_vehicles=50):

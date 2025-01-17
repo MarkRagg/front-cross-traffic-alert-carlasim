@@ -767,10 +767,10 @@ class RadarSensor(object):
         self.sensor.listen(
             lambda radar_data: RadarSensor._Radar_callback(weak_self, radar_data, parent_actor.get_velocity().length(), side))
 
-    def __del__(self):
-        if self.sensor is not None:
-            self.sensor.stop()
-            self.sensor.destroy()
+    # def __del__(self):
+    #     if self.sensor is not None:
+    #         self.sensor.stop()
+    #         self.sensor.destroy()
 
     @staticmethod
     def _Radar_callback(weak_self, radar_data, ego_velocity, side):
@@ -958,7 +958,7 @@ def game_loop(args):
         controller = DualControl(world, args.autopilot)
 
 
-        for i in range (1, 30): # 0 is the ego vehicle
+        for i in range (1, 40): # 0 is the ego vehicle
             vehicle = world.spawn_vehicle(spawn_index=i)
             vehicle.set_autopilot()
 
