@@ -87,9 +87,9 @@ class RadarSensor(object):
             points = np.frombuffer(radar_data.raw_data, dtype=np.dtype('f4'))
             points = np.reshape(points, (len(radar_data), 4))
             L = []
-            pointslist=points.tolist()
-            for i in range(len(pointslist)):
-                L.append(pointslist[i-1][-1])
+            pointsList=points.tolist()
+            for i in range(len(pointsList)):
+                L.append(pointsList[i-1][-1])
 
             ave = sum(L)/len(L)
 
