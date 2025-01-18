@@ -2,6 +2,7 @@ import carla
 import math
 import weakref
 import time
+import statistics
 import threading
 import numpy as np
 import paho.mqtt.client as mqtt
@@ -9,8 +10,11 @@ import paho.mqtt.publish as publish
 
 FIVE_KMH = 1.38889
 TEN_KMH = 2.77778
-LEFT_TO_RIGHT_THRESHOLD = 27  # Example threshold for distance or velocity change to filter out movements
-RIGHT_TO_LEFT_THRESHOLD = -20  # Negative threshold for opposite movement
+LEFT_TO_RIGHT_THRESHOLD = 7  # Threshold for delta of azi changes to filter out direction
+LEFT_TO_RIGHT_MAX_TRESHOLD = 12 # Max threshold for valid detection
+RIGHT_TO_LEFT_THRESHOLD = -7  # Negative threshold for opposite movement
+RIGHT_TO_LEFT_MAX_TRESHOLD = -12 # Max threshold for valid detection
+
 
 # MQTT settings
 MQTT_BROKER = "broker.mqtt-dashboard.com"
@@ -25,9 +29,13 @@ class RadarSensor(object):
     mqtt_client = mqtt.Client()
     mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
 
+    # List to save old detections for calculating delta
+    previous_avg_azis = None
+    older_avg_azis = None
+
     @staticmethod
     def reset_detections_after_time(duration: int):
-        while True:
+        # while True:
             time.sleep(duration)
             RadarSensor.left_detect = False
             RadarSensor.right_detect = False
@@ -119,11 +127,21 @@ class RadarSensor(object):
 
         if len(azis) > 5 and abs_detected_speed > FIVE_KMH and ego_velocity < TEN_KMH and ave < 20:
             azi_avg = sum(azis) / len(azis)
-            if azi_avg > LEFT_TO_RIGHT_THRESHOLD and side == "left" and not RadarSensor.right_detect:
-                print(f"Vehicle is moving Left to Right: {side}")
-                publish.single(topic=MQTT_LEFT_TOPIC, payload="vehicle detected!", hostname=MQTT_BROKER)
-                RadarSensor.left_detect = True
-            elif azi_avg < RIGHT_TO_LEFT_THRESHOLD and side == "right" and not RadarSensor.left_detect:
-                print(f"Vehicle is moving Right to Left: {side}")
-                publish.single(topic=MQTT_RIGHT_TOPIC, payload="vehicle detected!", hostname=MQTT_BROKER)
-                RadarSensor.right_detect = True
+            if RadarSensor.older_avg_azis is not None:
+                delta_azis = azi_avg - RadarSensor.older_avg_azis
+                if delta_azis > LEFT_TO_RIGHT_THRESHOLD and delta_azis < LEFT_TO_RIGHT_MAX_TRESHOLD and side == "left" and not RadarSensor.right_detect:
+                    print(f"Vehicle is moving Left to Right")
+                    # Send message to MQTT broker 
+                    publish.single(topic=MQTT_LEFT_TOPIC, payload="vehicle detected!", hostname=MQTT_BROKER)
+                    RadarSensor.start_timer(3)
+                    RadarSensor.left_detect = True
+                elif delta_azis < RIGHT_TO_LEFT_THRESHOLD and delta_azis > RIGHT_TO_LEFT_MAX_TRESHOLD and side == "right" and not RadarSensor.left_detect:
+                    print(f"Vehicle is moving Right to Left") 
+                    # Send message to MQTT broker  
+                    publish.single(topic=MQTT_RIGHT_TOPIC, payload="vehicle detected!", hostname=MQTT_BROKER)
+                    RadarSensor.start_timer(3)
+                    RadarSensor.right_detect = True
+            
+            RadarSensor.older_avg_azis = RadarSensor.previous_avg_azis
+            # Update previous_avg_azis with the current azimuths
+            RadarSensor.previous_avg_azis = azi_avg

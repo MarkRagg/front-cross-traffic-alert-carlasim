@@ -54,8 +54,6 @@ def main():
 
     radar_right = RadarSensor(ego_vehicle, "right", y=1, pitch=5, yaw=50)
     radar_left = RadarSensor(ego_vehicle, "left", y=-1, pitch=5, yaw=-50)
-    radar_right.start_timer(3)
-    radar_left.start_timer(3)
 
     utils.move_spectator_to(ego_vehicle.get_transform(), utils.spectator)
 

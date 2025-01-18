@@ -4,7 +4,7 @@ from carla import Rotation
 client = carla.Client('localhost', 2000)
 client.set_timeout(10.0)
 # world = client.load_world('Town10HD')
-world = client.load_world('Town01')
+# world = client.load_world('Town01')
 world = client.get_world()
 spectator = world.get_spectator()
 
