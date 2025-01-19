@@ -8,8 +8,9 @@ import numpy as np
 import paho.mqtt.client as mqtt
 import paho.mqtt.publish as publish
 
-FIVE_KMH = 1.38889
-TEN_KMH = 2.77778
+FIVE_KMH = 1.38889 # 5km/h in m/s
+TEN_KMH = 2.77778 # 10km/h in m/s
+DEPTH_THRESHOLD = 20 # Depth treshold for considering the target vehicle a threat for the ego vehicle
 LEFT_TO_RIGHT_THRESHOLD = 7  # Threshold for delta of azi changes to filter out direction
 LEFT_TO_RIGHT_MAX_TRESHOLD = 12 # Max threshold for valid detection
 RIGHT_TO_LEFT_THRESHOLD = -7  # Negative threshold for opposite movement
@@ -94,12 +95,12 @@ class RadarSensor(object):
             abs_detected_speed = abs(detect.velocity) - ego_velocity
             points = np.frombuffer(radar_data.raw_data, dtype=np.dtype('f4'))
             points = np.reshape(points, (len(radar_data), 4)) # the forth element of the array is the depth
-            L = []
+            depthList = []
             pointsList=points.tolist()
             for i in range(len(pointsList)):
-                L.append(pointsList[i-1][-1])
+                depthList.append(pointsList[i-1][-1])
 
-            ave = sum(L)/len(L)
+            depth_avg = sum(depthList)/len(depthList)
 
             # Get current rotation of radar sensor
             current_rot = radar_data.transform.rotation
@@ -125,7 +126,7 @@ class RadarSensor(object):
                 persistent_lines=False,
                 color=carla.Color(r, g, b))
 
-        if len(azis) > 5 and abs_detected_speed > FIVE_KMH and ego_velocity < TEN_KMH and ave < 20:
+        if len(azis) > 5 and abs_detected_speed > FIVE_KMH and ego_velocity < TEN_KMH and depth_avg < DEPTH_THRESHOLD:
             azi_avg = sum(azis) / len(azis)
             if RadarSensor.older_avg_azis is not None:
                 delta_azis = azi_avg - RadarSensor.older_avg_azis
