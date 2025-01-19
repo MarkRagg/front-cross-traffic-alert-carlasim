@@ -25,28 +25,12 @@ MQTT_RIGHT_TOPIC = "front_cross_traffic_alert/right"
 
 class RadarSensor(object):
     side = None
-    left_detect = False
-    right_detect = False
     mqtt_client = mqtt.Client()
     mqtt_client.connect(MQTT_BROKER, MQTT_PORT, 60)
 
     # List to save old detections for calculating delta
     previous_avg_azis = None
     older_avg_azis = None
-
-    @staticmethod
-    def reset_detections_after_time(duration: int):
-        # while True:
-            time.sleep(duration)
-            RadarSensor.left_detect = False
-            RadarSensor.right_detect = False
-
-    @staticmethod
-    def start_timer(duration: int):
-        reset_thread = threading.Thread(target=RadarSensor.reset_detections_after_time, args=(duration,))
-        reset_thread.daemon = True
-        reset_thread.start()
-
 
     def __init__(self, parent_actor, side, x=0.5, y=0.5, z=-0.5, pitch=5, yaw=0, roll=0):
         self.sensor = None
@@ -134,14 +118,10 @@ class RadarSensor(object):
                     print(f"Vehicle is moving Left to Right")
                     # Send message to MQTT broker 
                     publish.single(topic=MQTT_LEFT_TOPIC, payload="vehicle detected!", hostname=MQTT_BROKER)
-                    RadarSensor.start_timer(3)
-                    RadarSensor.left_detect = True
                 elif delta_azis < RIGHT_TO_LEFT_THRESHOLD and delta_azis > RIGHT_TO_LEFT_MAX_TRESHOLD and side == "right" and not RadarSensor.left_detect:
                     print(f"Vehicle is moving Right to Left") 
                     # Send message to MQTT broker  
                     publish.single(topic=MQTT_RIGHT_TOPIC, payload="vehicle detected!", hostname=MQTT_BROKER)
-                    RadarSensor.start_timer(3)
-                    RadarSensor.right_detect = True
             
             RadarSensor.older_avg_azis = RadarSensor.previous_avg_azis
             # Update previous_avg_azis with the current azimuths
