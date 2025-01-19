@@ -93,7 +93,7 @@ class RadarSensor(object):
             # Calculating velocity of target vehicle
             abs_detected_speed = abs(detect.velocity) - ego_velocity
             points = np.frombuffer(radar_data.raw_data, dtype=np.dtype('f4'))
-            points = np.reshape(points, (len(radar_data), 4))
+            points = np.reshape(points, (len(radar_data), 4)) # the forth element of the array is the depth
             L = []
             pointsList=points.tolist()
             for i in range(len(pointsList)):
