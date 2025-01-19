@@ -175,7 +175,7 @@ class World(object):
         cam_index = self.camera_manager.index if self.camera_manager is not None else 0
         cam_pos_index = self.camera_manager.transform_index if self.camera_manager is not None else 0
         # Get a random blueprint.
-        blueprint = random.choice(self.world.get_blueprint_library().filter(self._actor_filter))
+        blueprint = random.choice(self.world.get_blueprint_library().filter('vehicle.*model3*'))
         blueprint.set_attribute('role_name', 'hero')
         if blueprint.has_attribute('color'):
             color = random.choice(blueprint.get_attribute('color').recommended_values)
@@ -767,10 +767,10 @@ class RadarSensor(object):
         self.sensor.listen(
             lambda radar_data: RadarSensor._Radar_callback(weak_self, radar_data, parent_actor.get_velocity().length(), side))
 
-    # def __del__(self):
-    #     if self.sensor is not None:
-    #         self.sensor.stop()
-    #         self.sensor.destroy()
+    def __del__(self):
+        if self.sensor is not None:
+            self.sensor.stop()
+            self.sensor.destroy()
 
     @staticmethod
     def _Radar_callback(weak_self, radar_data, ego_velocity, side):
