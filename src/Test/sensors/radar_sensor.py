@@ -69,6 +69,7 @@ class RadarSensor(object):
         if not self:
             return
         azis = []
+        detected_speeds = []
         # Extract the radar data points from the radar sensor
         for detect in radar_data:
             azi = math.degrees(detect.azimuth)  # Azimuth angle in degrees
@@ -77,6 +78,7 @@ class RadarSensor(object):
             azis.append(azi)
             # Calculating velocity of target vehicle
             abs_detected_speed = abs(detect.velocity) - ego_velocity
+            detected_speeds.append(abs_detected_speed)
             points = np.frombuffer(radar_data.raw_data, dtype=np.dtype('f4'))
             points = np.reshape(points, (len(radar_data), 4)) # the forth element of the array is the depth
             depthList = []
@@ -110,9 +112,11 @@ class RadarSensor(object):
                 persistent_lines=False,
                 color=carla.Color(r, g, b))
 
-        if len(azis) > 5 and abs_detected_speed > FIVE_KMH and ego_velocity < TEN_KMH and depth_avg < DEPTH_THRESHOLD:
+
+        if len(azis) > 0 and len(detected_speeds) > 0 and ego_velocity < TEN_KMH and depth_avg < DEPTH_THRESHOLD:
             azi_avg = sum(azis) / len(azis)
-            if RadarSensor.older_avg_azis is not None:
+            detected_speed_avg = sum(detected_speeds) / len(detected_speeds)
+            if RadarSensor.older_avg_azis is not None and detected_speed_avg > FIVE_KMH:
                 delta_azis = azi_avg - RadarSensor.older_avg_azis
                 if delta_azis > LEFT_TO_RIGHT_THRESHOLD and delta_azis < LEFT_TO_RIGHT_MAX_TRESHOLD and side == "left" :
                     print(f"Vehicle is moving Left to Right")

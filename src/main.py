@@ -61,7 +61,7 @@ def main():
         else:
             print("Invalid choice, please try again.")
 
-    # os.system('cls')
+    os.system('cls')
     print("Open the CARLA server window!")
 
     radar_right = RadarSensor(ego_vehicle, "right", y=1, pitch=5, yaw=50)
