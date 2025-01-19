@@ -114,11 +114,11 @@ class RadarSensor(object):
             azi_avg = sum(azis) / len(azis)
             if RadarSensor.older_avg_azis is not None:
                 delta_azis = azi_avg - RadarSensor.older_avg_azis
-                if delta_azis > LEFT_TO_RIGHT_THRESHOLD and delta_azis < LEFT_TO_RIGHT_MAX_TRESHOLD and side == "left" and not RadarSensor.right_detect:
+                if delta_azis > LEFT_TO_RIGHT_THRESHOLD and delta_azis < LEFT_TO_RIGHT_MAX_TRESHOLD and side == "left" :
                     print(f"Vehicle is moving Left to Right")
                     # Send message to MQTT broker 
                     publish.single(topic=MQTT_LEFT_TOPIC, payload="vehicle detected!", hostname=MQTT_BROKER)
-                elif delta_azis < RIGHT_TO_LEFT_THRESHOLD and delta_azis > RIGHT_TO_LEFT_MAX_TRESHOLD and side == "right" and not RadarSensor.left_detect:
+                elif delta_azis < RIGHT_TO_LEFT_THRESHOLD and delta_azis > RIGHT_TO_LEFT_MAX_TRESHOLD and side == "right":
                     print(f"Vehicle is moving Right to Left") 
                     # Send message to MQTT broker  
                     publish.single(topic=MQTT_RIGHT_TOPIC, payload="vehicle detected!", hostname=MQTT_BROKER)
